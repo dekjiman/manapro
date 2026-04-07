@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: manapro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: manapro
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: manapro-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:sqladmin@localhost:5432/db_management?schema=public
+      JWT_SECRET: manapro-secret-key-change-in-production
+      JWT_EXPIRES_IN: 15m
+      CORS_ORIGIN: http://localhost:5173
+    depends_on:
+      - postgres
+
+  # Frontend (optional, for production)
+  # web:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "5173:80"
+  #   depends_on:
+  #     - api
+
+volumes:
+  postgres_data:

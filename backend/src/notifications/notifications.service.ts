@@ -1,0 +1,36 @@
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../prisma/prisma.service'
+
+@Injectable()
+export class NotificationsService {
+  constructor(private prisma: PrismaService) {}
+
+  async findByUser(userId: string) {
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    })
+  }
+
+  async getUnreadCount(userId: string) {
+    return this.prisma.notification.count({
+      where: { userId, isRead: false },
+    })
+  }
+
+  async create(data: { type: string; title: string; message: string; userId: string; projectId: string; taskId?: string }) {
+    return this.prisma.notification.create({ data })
+  }
+
+  async markAsRead(id: string) {
+    return this.prisma.notification.update({ where: { id }, data: { isRead: true } })
+  }
+
+  async markAllAsRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    })
+  }
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "t1",
+    "name": "Toko Budi Online",
+    "slug": "toko-budi",
+    "logo_url": null,
+    "owner_id": "u1",
+    "plan": "pro",
+    "settings": {
+      "max_members": 20,
+      "max_projects": 20,
+      "custom_branding": false,
+      "audit_log": false,
+      "storage_limit_mb": 5120,
+      "primary_color": null
+    },
+    "created_at": "2026-01-15"
+  },
+  {
+    "id": "t2",
+    "name": "Kerajinan Kulit Bali",
+    "slug": "kerajinan-bali",
+    "logo_url": null,
+    "owner_id": "u2",
+    "plan": "free",
+    "settings": {
+      "max_members": 3,
+      "max_projects": 2,
+      "custom_branding": false,
+      "audit_log": false,
+      "storage_limit_mb": 100,
+      "primary_color": null
+    },
+    "created_at": "2026-02-20"
+  },
+  {
+    "id": "t3",
+    "name": "PT Maju Jaya",
+    "slug": "maju-jaya",
+    "logo_url": null,
+    "owner_id": "u1",
+    "plan": "enterprise",
+    "settings": {
+      "max_members": 999,
+      "max_projects": 999,
+      "custom_branding": true,
+      "audit_log": true,
+      "storage_limit_mb": 51200,
+      "primary_color": "#2563EB"
+    },
+    "created_at": "2026-03-01"
+  }
+]

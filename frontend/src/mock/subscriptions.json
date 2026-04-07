@@ -1,0 +1,32 @@
+[
+  {
+    "id": "sub1",
+    "tenant_id": "t1",
+    "plan": "pro",
+    "status": "active",
+    "billing_cycle": "monthly",
+    "price": 49000,
+    "current_period_start": "2026-03-01",
+    "current_period_end": "2026-03-31"
+  },
+  {
+    "id": "sub2",
+    "tenant_id": "t2",
+    "plan": "free",
+    "status": "active",
+    "billing_cycle": "monthly",
+    "price": 0,
+    "current_period_start": "2026-02-20",
+    "current_period_end": "2099-12-31"
+  },
+  {
+    "id": "sub3",
+    "tenant_id": "t3",
+    "plan": "enterprise",
+    "status": "active",
+    "billing_cycle": "yearly",
+    "price": 2500000,
+    "current_period_start": "2026-03-01",
+    "current_period_end": "2027-03-01"
+  }
+]

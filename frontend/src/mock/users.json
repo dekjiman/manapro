@@ -1,0 +1,50 @@
+[
+  {
+    "id": "u1",
+    "name": "Budi Santoso",
+    "email": "budi@manapro.id",
+    "current_tenant_id": "t1",
+    "tenant_ids": ["t1", "t3"],
+    "avatar": "",
+    "divisi": "Manajemen",
+    "jabatan": "Direktur",
+    "phone": "+6281234567890",
+    "language_pref": "id"
+  },
+  {
+    "id": "u2",
+    "name": "Siti Rahayu",
+    "email": "siti@manapro.id",
+    "current_tenant_id": "t2",
+    "tenant_ids": ["t1", "t2", "t3"],
+    "avatar": "",
+    "divisi": "Desain",
+    "jabatan": "Desainer Grafis",
+    "phone": "+6281234567891",
+    "language_pref": "id"
+  },
+  {
+    "id": "u3",
+    "name": "Ahmad Rizki",
+    "email": "ahmad@manapro.id",
+    "current_tenant_id": "t1",
+    "tenant_ids": ["t1", "t2"],
+    "avatar": "",
+    "divisi": "Operasional",
+    "jabatan": "Staff Operasional",
+    "phone": "+6281234567892",
+    "language_pref": "id"
+  },
+  {
+    "id": "u4",
+    "name": "Dewi Lestari",
+    "email": "dewi@manapro.id",
+    "current_tenant_id": "t2",
+    "tenant_ids": ["t1", "t2"],
+    "avatar": "",
+    "divisi": "Produksi",
+    "jabatan": "Kepala Produksi",
+    "phone": "+6281234567893",
+    "language_pref": "id"
+  }
+]

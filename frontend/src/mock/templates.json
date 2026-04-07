@@ -1,0 +1,320 @@
+[
+  {
+    "id": "tmpl_social_media",
+    "category": "marketing",
+    "name": "Social Media Marketing",
+    "description": "Kelola konten media sosial dari ide hingga analisis performa",
+    "icon": "share",
+    "columns": [
+      { "name": "Ide Konten", "color": "#94A3B8" },
+      { "name": "Sedang Dibuat", "color": "#3B82F6" },
+      { "name": "Siap Posting", "color": "#8B5CF6" },
+      { "name": "Terjadwal", "color": "#F59E0B" },
+      { "name": "Sudah Diposting", "color": "#10B981" },
+      { "name": "Analisis", "color": "#6366F1" }
+    ],
+    "sampleTasks": [
+      { "title": "Riset hashtag trending minggu ini", "column": 0, "priority": "medium" },
+      { "title": "Buat konten Reels produk baru", "column": 0, "priority": "high" },
+      { "title": "Desain feed Instagram bulan ini", "column": 1, "priority": "high" },
+      { "title": "Tulis caption promosi weekend", "column": 2, "priority": "medium" },
+      { "title": "Jadwalkan post Senin jam 10:00", "column": 3, "priority": "medium" },
+      { "title": "Review engagement post kemarin", "column": 5, "priority": "low" }
+    ]
+  },
+  {
+    "id": "tmpl_content_marketing",
+    "category": "marketing",
+    "name": "Content Marketing",
+    "description": "Kelola produksi konten artikel, blog, dan newsletter",
+    "icon": "document",
+    "columns": [
+      { "name": "Ide Artikel", "color": "#94A3B8" },
+      { "name": "Riset", "color": "#06B6D4" },
+      { "name": "Penulisan", "color": "#3B82F6" },
+      { "name": "Review & Edit", "color": "#F59E0B" },
+      { "name": "Desain Visual", "color": "#8B5CF6" },
+      { "name": "Dipublikasi", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Artikel: Tips memulai bisnis online 2026", "column": 0, "priority": "high" },
+      { "title": "Riset kata kunci SEO 'cara jualan online'", "column": 1, "priority": "high" },
+      { "title": "Tulis draft artikel UMKM sukses", "column": 2, "priority": "medium" },
+      { "title": "Review artikel minggu lalu", "column": 3, "priority": "medium" },
+      { "title": "Buat cover image blog post", "column": 4, "priority": "low" },
+      { "title": "Publish artikel ke website", "column": 5, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_product_launch",
+    "category": "marketing",
+    "name": "Product Launch",
+    "description": "Kelola peluncuran produk dari perencanaan hingga evaluasi",
+    "icon": "rocket",
+    "columns": [
+      { "name": "Perencanaan", "color": "#94A3B8" },
+      { "name": "Pre-Launch", "color": "#F59E0B" },
+      { "name": "Launch Day", "color": "#EF4444" },
+      { "name": "Post-Launch", "color": "#3B82F6" },
+      { "name": "Selesai", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Tentukan tanggal dan strategi launch", "column": 0, "priority": "high" },
+      { "title": "Buat teaser campaign di media sosial", "column": 1, "priority": "high" },
+      { "title": "Siapkan materi press release", "column": 1, "priority": "medium" },
+      { "title": "Live streaming di Instagram", "column": 2, "priority": "high" },
+      { "title": "Monitor penjualan minggu pertama", "column": 3, "priority": "medium" },
+      { "title": "Evaluasi hasil launch", "column": 4, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_campaign",
+    "category": "marketing",
+    "name": "Campaign Umum",
+    "description": "Kelola campaign marketing dari planning hingga evaluasi",
+    "icon": "megaphone",
+    "columns": [
+      { "name": "Planning", "color": "#94A3B8" },
+      { "name": "Eksekusi", "color": "#3B82F6" },
+      { "name": "Monitoring", "color": "#F59E0B" },
+      { "name": "Evaluasi", "color": "#8B5CF6" },
+      { "name": "Done", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Tentukan target dan KPI campaign", "column": 0, "priority": "high" },
+      { "title": "Siapkan budget dan alokasi", "column": 0, "priority": "high" },
+      { "title": "Jalankan iklan Facebook Ads", "column": 1, "priority": "medium" },
+      { "title": "Monitor performa harian", "column": 2, "priority": "medium" },
+      { "title": "Evaluasi ROI campaign", "column": 3, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_recruitment",
+    "category": "hr",
+    "name": "Rekrutmen",
+    "description": "Kelola proses rekrutmen dari lamaran hingga hiring",
+    "icon": "users",
+    "columns": [
+      { "name": "Lamaran Masuk", "color": "#94A3B8" },
+      { "name": "Screening CV", "color": "#06B6D4" },
+      { "name": "Interview", "color": "#3B82F6" },
+      { "name": "Offer", "color": "#F59E0B" },
+      { "name": "Hired", "color": "#10B981" },
+      { "name": "Rejected", "color": "#EF4444" }
+    ],
+    "sampleTasks": [
+      { "title": "Review lamaran posisi Marketing", "column": 0, "priority": "high" },
+      { "title": "Screening CV kandidat Admin", "column": 1, "priority": "medium" },
+      { "title": "Jadwalkan interview kandidat #1", "column": 2, "priority": "high" },
+      { "title": "Kirim offer letter", "column": 3, "priority": "high" }
+    ]
+  },
+  {
+    "id": "tmpl_onboarding",
+    "category": "hr",
+    "name": "Onboarding Karyawan",
+    "description": "Kelola proses onboarding karyawan baru",
+    "icon": "user-add",
+    "columns": [
+      { "name": "Persiapan", "color": "#94A3B8" },
+      { "name": "Hari Pertama", "color": "#F59E0B" },
+      { "name": "Minggu 1", "color": "#3B82F6" },
+      { "name": "Bulan 1", "color": "#8B5CF6" },
+      { "name": "Selesai", "color": "10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Siapkan laptop dan akses email", "column": 0, "priority": "high" },
+      { "title": "Buat kartu nama", "column": 0, "priority": "low" },
+      { "title": "Orientasi kantor dan tim", "column": 1, "priority": "high" },
+      { "title": "Training tools dan sistem", "column": 2, "priority": "medium" },
+      { "title": "Review 30 hari pertama", "column": 3, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_performance",
+    "category": "hr",
+    "name": "Evaluasi Kinerja",
+    "description": "Kelola proses evaluasi kinerja karyawan",
+    "icon": "chart",
+    "columns": [
+      { "name": "Self Review", "color": "#94A3B8" },
+      { "name": "Manager Review", "color": "#3B82F6" },
+      { "name": "Feedback", "color": "#F59E0B" },
+      { "name": "Goal Setting", "color": "#8B5CF6" },
+      { "name": "Done", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Isi form self-assessment Q1", "column": 0, "priority": "high" },
+      { "title": "Review kinerja tim marketing", "column": 1, "priority": "high" },
+      { "title": "Sesi feedback 1-on-1", "column": 2, "priority": "medium" },
+      { "title": "Set target KPI Q2", "column": 3, "priority": "high" }
+    ]
+  },
+  {
+    "id": "tmpl_invoice",
+    "category": "finance",
+    "name": "Invoice Tracking",
+    "description": "Lacak status invoice dari draft hingga lunas",
+    "icon": "receipt",
+    "columns": [
+      { "name": "Draft", "color": "#94A3B8" },
+      { "name": "Dikirim", "color": "#3B82F6" },
+      { "name": "Menunggu Bayar", "color": "#F59E0B" },
+      { "name": "Jatuh Tempo", "color": "#EF4444" },
+      { "name": "Lunas", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Buat invoice #001 - Toko ABC", "column": 0, "priority": "high" },
+      { "title": "Kirim invoice ke client via email", "column": 1, "priority": "medium" },
+      { "title": "Follow up pembayaran CV Maju", "column": 2, "priority": "high" },
+      { "title": "Invoice #025 overdue", "column": 3, "priority": "high" },
+      { "title": "Invoice #020 sudah dibayar", "column": 4, "priority": "low" }
+    ]
+  },
+  {
+    "id": "tmpl_budget",
+    "category": "finance",
+    "name": "Budget Planning",
+    "description": "Kelola perencanaan dan monitoring anggaran",
+    "icon": "wallet",
+    "columns": [
+      { "name": "Input Data", "color": "#94A3B8" },
+      { "name": "Review", "color": "#F59E0B" },
+      { "name": "Approved", "color": "#10B981" },
+      { "name": "Implementasi", "color": "#3B82F6" },
+      { "name": "Monitoring", "color": "#8B5CF6" }
+    ],
+    "sampleTasks": [
+      { "title": "Input budget marketing Q2", "column": 0, "priority": "high" },
+      { "title": "Review budget operasional", "column": 1, "priority": "medium" },
+      { "title": "Approve budget tim produksi", "column": 2, "priority": "high" },
+      { "title": "Implementasi budget IT", "column": 3, "priority": "medium" },
+      { "title": "Monitor pengeluaran bulanan", "column": 4, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_expense",
+    "category": "finance",
+    "name": "Expense Report",
+    "description": "Kelola pengajuan dan reimburse pengeluaran",
+    "icon": "card",
+    "columns": [
+      { "name": "Diajukan", "color": "#94A3B8" },
+      { "name": "Review Finance", "color": "#F59E0B" },
+      { "name": "Approved", "color": "#10B981" },
+      { "name": "Reimburse", "color": "#3B82F6" },
+      { "name": "Done", "color": "#6366F1" }
+    ],
+    "sampleTasks": [
+      { "title": "Pengajuan biaya transport meeting", "column": 0, "priority": "low" },
+      { "title": "Review klaim ATK bulan ini", "column": 1, "priority": "medium" },
+      { "title": "Approve biaya training karyawan", "column": 2, "priority": "medium" },
+      { "title": "Proses reimburse Ahmad", "column": 3, "priority": "high" }
+    ]
+  },
+  {
+    "id": "tmpl_sales_pipeline",
+    "category": "sales",
+    "name": "Sales Pipeline",
+    "description": "Kelola pipeline penjualan dari prospek hingga deal",
+    "icon": "trending",
+    "columns": [
+      { "name": "Prospek", "color": "#94A3B8" },
+      { "name": "Kontak Awal", "color": "#06B6D4" },
+      { "name": "Proposal", "color": "#3B82F6" },
+      { "name": "Negosiasi", "color": "#F59E0B" },
+      { "name": "Deal Won", "color": "#10B981" },
+      { "name": "Deal Lost", "color": "#EF4444" }
+    ],
+    "sampleTasks": [
+      { "title": "Follow up lead dari website", "column": 0, "priority": "high" },
+      { "title": "Telepon calon customer baru", "column": 1, "priority": "medium" },
+      { "title": "Kirim proposal ke PT Sukses", "column": 2, "priority": "high" },
+      { "title": "Negosiasi harga dengan CV Jaya", "column": 3, "priority": "high" },
+      { "title": "Close deal dengan Toko ABC", "column": 4, "priority": "high" }
+    ]
+  },
+  {
+    "id": "tmpl_customer_onboarding",
+    "category": "sales",
+    "name": "Customer Onboarding",
+    "description": "Kelola proses onboarding customer baru",
+    "icon": "handshake",
+    "columns": [
+      { "name": "Welcome", "color": "#10B981" },
+      { "name": "Setup Akun", "color": "#3B82F6" },
+      { "name": "Training", "color": "#F59E0B" },
+      { "name": "Go Live", "color": "#8B5CF6" },
+      { "name": "Retained", "color": "#6366F1" }
+    ],
+    "sampleTasks": [
+      { "title": "Kirim welcome email dan panduan", "column": 0, "priority": "high" },
+      { "title": "Setup akun customer baru", "column": 1, "priority": "high" },
+      { "title": "Jadwalkan training Zoom", "column": 2, "priority": "medium" },
+      { "title": "Monitor aktivitas minggu pertama", "column": 3, "priority": "medium" },
+      { "title": "Check-in retention 30 hari", "column": 4, "priority": "medium" }
+    ]
+  },
+  {
+    "id": "tmpl_order_fulfillment",
+    "category": "operations",
+    "name": "Order Fulfillment",
+    "description": "Kelola proses pesanan dari penerimaan hingga pengiriman",
+    "icon": "box",
+    "columns": [
+      { "name": "Pesanan Masuk", "color": "#94A3B8" },
+      { "name": "Diproses", "color": "#3B82F6" },
+      { "name": "Quality Check", "color": "#F59E0B" },
+      { "name": "Dikirim", "color": "#8B5CF6" },
+      { "name": "Selesai", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Proses pesanan #1001 dari Shopee", "column": 0, "priority": "high" },
+      { "title": "Pack pesanan #0998", "column": 1, "priority": "medium" },
+      { "title": "Cek kualitas produk sebelum kirim", "column": 2, "priority": "high" },
+      { "title": "Kirim via JNE - resi 123456", "column": 3, "priority": "medium" },
+      { "title": "Pesanan #0990 delivered", "column": 4, "priority": "low" }
+    ]
+  },
+  {
+    "id": "tmpl_inventory",
+    "category": "operations",
+    "name": "Inventory Management",
+    "description": "Kelola stok dan persediaan barang",
+    "icon": "warehouse",
+    "columns": [
+      { "name": "Perlu Order", "color": "#EF4444" },
+      { "name": "Sedang Dipesan", "color": "#F59E0B" },
+      { "name": "Diterima", "color": "#3B82F6" },
+      { "name": "Dicek", "color": "#8B5CF6" },
+      { "name": "Tersimpan", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "Stok bahan baku A menipis", "column": 0, "priority": "high" },
+      { "title": "Order 100 unit bahan B", "column": 1, "priority": "high" },
+      { "title": "Terima pengiriman dari supplier", "column": 2, "priority": "medium" },
+      { "title": "Cek kualitas barang masuk", "column": 3, "priority": "medium" },
+      { "title": "Simpan di rak gudang B2", "column": 4, "priority": "low" }
+    ]
+  },
+  {
+    "id": "tmpl_maintenance",
+    "category": "operations",
+    "name": "Maintenance & Repair",
+    "description": "Kelola permintaan dan proses maintenance",
+    "icon": "wrench",
+    "columns": [
+      { "name": "Request", "color": "#94A3B8" },
+      { "name": "Dijadwalkan", "color": "#F59E0B" },
+      { "name": "In Progress", "color": "#3B82F6" },
+      { "name": "Verifikasi", "color": "#8B5CF6" },
+      { "name": "Done", "color": "#10B981" }
+    ],
+    "sampleTasks": [
+      { "title": "AC ruangan meeting rusak", "column": 0, "priority": "high" },
+      { "title": "Jadwalkan service printer", "column": 1, "priority": "medium" },
+      { "title": "Perbaikan listrik gudang", "column": 2, "priority": "high" },
+      { "title": "Verifikasi perbaikan komputer", "column": 3, "priority": "low" }
+    ]
+  }
+]

@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "features": "Fitur",
+    "pricing": "Harga",
+    "login": "Masuk",
+    "getFree": "Mulai Gratis"
+  },
+  "hero": {
+    "title": "Kelola Proyek Bisnis Anda dengan Mudah",
+    "subtitle": "Dirancang khusus untuk UMKM Indonesia. Sederhana, efisien, dan terjangkau. Tingkatkan produktivitas tim Anda hari ini.",
+    "cta": "Mulai Gratis",
+    "ctaSecondary": "Lihat Fitur",
+    "noCredit": "Tidak perlu kartu kredit"
+  },
+  "features": {
+    "title": "Fitur yang Anda Butuhkan",
+    "subtitle": "Semua yang diperlukan untuk mengelola bisnis Anda dengan efisien",
+    "kanban": {
+      "title": "Kanban Board",
+      "desc": "Visualisasi tugas dengan drag & drop. Pindahkan tugas antar kolom dengan mudah."
+    },
+    "collaboration": {
+      "title": "Kolaborasi Tim",
+      "desc": "Komentar, @mention anggota tim, dan notifikasi real-time untuk koordinasi yang lebih baik."
+    },
+    "finance": {
+      "title": "Tracking Keuangan",
+      "desc": "Pantau biaya dan pendapatan proyek. Integrasi dengan e-invoicing lokal."
+    },
+    "mobile": {
+      "title": "Mobile Friendly",
+      "desc": "Akses dari mana saja, kapan saja. Tampilan responsif untuk semua perangkat."
+    },
+    "offline": {
+      "title": "Offline Mode",
+      "desc": "Tetap produktif tanpa internet. Data otomatis tersinkron saat online."
+    },
+    "analytics": {
+      "title": "Analitik & Laporan",
+      "desc": "Dashboard performa tim dan laporan KPI untuk pengambilan keputusan yang lebih baik."
+    }
+  },
+  "pricing": {
+    "title": "Harga yang Terjangkau",
+    "subtitle": "Mulai gratis dan upgrade kapan saja sesuai kebutuhan bisnis Anda",
+    "popular": "Paling Populer",
+    "monthly": "/bulan",
+    "yearly": "/tahun",
+    "yearlySave": "Hemat 20%",
+    "cta": "Pilih Paket",
+    "ctaFree": "Mulai Gratis",
+    "free": {
+      "name": "Free",
+      "price": "Rp 0",
+      "desc": "Untuk memulai",
+      "features": ["3 anggota tim", "2 proyek", "100 MB storage", "Kanban Board", "Komentar"]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "Rp 49.000",
+      "desc": "Untuk tim yang berkembang",
+      "features": ["20 anggota tim", "20 proyek", "5 GB storage", "Semua fitur Free", "Kalender & Gantt", "Financial tracking", "Priority support"]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Rp 199.000",
+      "desc": "Untuk perusahaan",
+      "features": ["Unlimited anggota", "Unlimited proyek", "50 GB storage", "Semua fitur Pro", "Custom branding", "Audit log", "API access", "Dedicated support"]
+    }
+  },
+  "testimonials": {
+    "title": "Dipercaya oleh UMKM Indonesia",
+    "subtitle": "Lihat apa kata mereka tentang Manapro"
+  },
+  "cta": {
+    "title": "Siap Tingkatkan Produktivitas Bisnis Anda?",
+    "subtitle": "Bergabung dengan ribuan UMKM Indonesia yang sudah menggunakan Manapro",
+    "button": "Mulai Gratis Sekarang",
+    "noCredit": "Gratis selamanya untuk 3 anggota"
+  },
+  "footer": {
+    "product": "Produk",
+    "features": "Fitur",
+    "pricing": "Harga",
+    "company": "Perusahaan",
+    "about": "Tentang Kami",
+    "contact": "Kontak",
+    "support": "Dukungan",
+    "docs": "Dokumentasi",
+    "help": "Pusat Bantuan",
+    "copyright": "2026 Manapro. Semua hak dilindungi."
+  }
+}

@@ -1,0 +1,94 @@
+[
+  {
+    "id": "login",
+    "title": "User Login",
+    "description": "Test login with valid credentials",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/login"},
+      {"action": "fill", "selector": "input[type=email]", "value": "budi@manapro.id"},
+      {"action": "fill", "selector": "input[type=password]", "value": "password123"},
+      {"action": "click", "selector": "button[type=submit]"},
+      {"action": "wait", "selector": "[class*=workspace]"}
+    ],
+    "expected": "User is redirected to workspace page after login"
+  },
+  {
+    "id": "register",
+    "title": "User Registration",
+    "description": "Test new user registration",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/register"},
+      {"action": "fill", "selector": "input[placeholder*=nama]", "value": "Test User"},
+      {"action": "fill", "selector": "input[type=email]", "value": "test@example.com"},
+      {"action": "fill", "selector": "input[type=password]", "value": "test123456"},
+      {"action": "click", "selector": "button[type=submit]"}
+    ],
+    "expected": "User is redirected to onboarding after registration"
+  },
+  {
+    "id": "workspace-create",
+    "title": "Create Workspace",
+    "description": "Test creating a new workspace",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/w/t1/workspaces"},
+      {"action": "click", "selector": "text=Workspace Baru"},
+      {"action": "fill", "selector": "input[placeholder*=Tim]", "value": "Test Workspace"},
+      {"action": "click", "selector": "text=Buat"}
+    ],
+    "expected": "New workspace is created and visible in list"
+  },
+  {
+    "id": "project-create",
+    "title": "Create Project",
+    "description": "Test creating a new project",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/w/t1/workspaces/w1/projects"},
+      {"action": "click", "selector": "text=Proyek Baru"},
+      {"action": "fill", "selector": "input[placeholder*=Rebranding]", "value": "Test Project"},
+      {"action": "click", "selector": "button[type=submit]"}
+    ],
+    "expected": "New project is created and visible in list"
+  },
+  {
+    "id": "task-create",
+    "title": "Create Task",
+    "description": "Test creating a new task in Kanban",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/w/t1/workspaces/w1/projects/p1"},
+      {"action": "click", "selector": "text=Tambah Tugas"},
+      {"action": "fill", "selector": "input[placeholder*=Apa]", "value": "Test Task"},
+      {"action": "click", "selector": "text=Buat Tugas"}
+    ],
+    "expected": "New task is created in the column"
+  },
+  {
+    "id": "member-invite",
+    "title": "Invite Team Member",
+    "description": "Test inviting a new member",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/w/t1/members"},
+      {"action": "click", "selector": "text=Undang Anggota"},
+      {"action": "fill", "selector": "input[type=email]", "value": "siti@manapro.id"},
+      {"action": "click", "selector": "text=Undang"}
+    ],
+    "expected": "Member is invited and appears in list"
+  },
+  {
+    "id": "settings-profile",
+    "title": "Update Profile Settings",
+    "description": "Test updating user profile",
+    "type": "e2e",
+    "steps": [
+      {"action": "navigate", "url": "http://localhost:5173/w/t1/settings"},
+      {"action": "fill", "selector": "input[placeholder*=nama]", "value": "Updated Name"},
+      {"action": "click", "selector": "text=Simpan"}
+    ],
+    "expected": "Profile is updated successfully"
+  }
+]

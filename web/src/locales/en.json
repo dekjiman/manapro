@@ -1,0 +1,93 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "login": "Sign In",
+    "getFree": "Get Started Free"
+  },
+  "hero": {
+    "title": "Manage Your Business Projects with Ease",
+    "subtitle": "Designed specifically for Indonesian MSMEs. Simple, efficient, and affordable. Boost your team's productivity today.",
+    "cta": "Start Free",
+    "ctaSecondary": "View Features",
+    "noCredit": "No credit card required"
+  },
+  "features": {
+    "title": "Everything You Need",
+    "subtitle": "All the tools required to manage your business efficiently",
+    "kanban": {
+      "title": "Kanban Board",
+      "desc": "Visualize tasks with drag & drop. Move tasks between columns effortlessly."
+    },
+    "collaboration": {
+      "title": "Team Collaboration",
+      "desc": "Comments, @mentions, and real-time notifications for better coordination."
+    },
+    "finance": {
+      "title": "Financial Tracking",
+      "desc": "Monitor project costs and revenue. Integration with local e-invoicing."
+    },
+    "mobile": {
+      "title": "Mobile Friendly",
+      "desc": "Access from anywhere, anytime. Responsive design for all devices."
+    },
+    "offline": {
+      "title": "Offline Mode",
+      "desc": "Stay productive without internet. Data syncs automatically when online."
+    },
+    "analytics": {
+      "title": "Analytics & Reports",
+      "desc": "Team performance dashboard and KPI reports for better decision making."
+    }
+  },
+  "pricing": {
+    "title": "Affordable Pricing",
+    "subtitle": "Start free and upgrade anytime as your business grows",
+    "popular": "Most Popular",
+    "monthly": "/month",
+    "yearly": "/year",
+    "yearlySave": "Save 20%",
+    "cta": "Choose Plan",
+    "ctaFree": "Start Free",
+    "free": {
+      "name": "Free",
+      "price": "Rp 0",
+      "desc": "To get started",
+      "features": ["3 team members", "2 projects", "100 MB storage", "Kanban Board", "Comments"]
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "Rp 49,000",
+      "desc": "For growing teams",
+      "features": ["20 team members", "20 projects", "5 GB storage", "All Free features", "Calendar & Gantt", "Financial tracking", "Priority support"]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "Rp 199,000",
+      "desc": "For companies",
+      "features": ["Unlimited members", "Unlimited projects", "50 GB storage", "All Pro features", "Custom branding", "Audit log", "API access", "Dedicated support"]
+    }
+  },
+  "testimonials": {
+    "title": "Trusted by Indonesian MSMEs",
+    "subtitle": "See what they say about Manapro"
+  },
+  "cta": {
+    "title": "Ready to Boost Your Business Productivity?",
+    "subtitle": "Join thousands of Indonesian MSMEs already using Manapro",
+    "button": "Start Free Now",
+    "noCredit": "Free forever for up to 3 members"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "company": "Company",
+    "about": "About Us",
+    "contact": "Contact",
+    "support": "Support",
+    "docs": "Documentation",
+    "help": "Help Center",
+    "copyright": "2026 Manapro. All rights reserved."
+  }
+}

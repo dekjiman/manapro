@@ -1,0 +1,247 @@
+version: "2"
+type: frontend
+tech_stack:
+  - Vue 3 (Composition API)
+  - Vite
+  - Tailwind CSS
+  - Pinia (State Management)
+  - Vue Router 4
+  - VueDraggable
+  - TypeScript
+  - NestJS Backend
+  - PostgreSQL + Prisma
+
+routes:
+  - path: /login
+    file: src/views/LoginView.vue
+    auth_required: false
+    description: User login page with email/password
+  - path: /register
+    file: src/views/RegisterView.vue
+    auth_required: false
+    description: User registration page
+  - path: /forgot-password
+    file: src/views/ForgotPasswordView.vue
+    auth_required: false
+    description: Password reset page
+  - path: /pricing
+    file: src/views/PricingView.vue
+    auth_required: false
+    description: Public pricing page
+  - path: /onboarding
+    file: src/views/OnboardingView.vue
+    auth_required: true
+    description: New user onboarding to create business
+  - path: /select-tenant
+    file: src/views/SelectTenantView.vue
+    auth_required: true
+    description: Select business for users with multiple tenants
+  - path: /w/:tenantId/workspaces
+    file: src/views/WorkspaceListView.vue
+    auth_required: true
+    description: List and manage workspaces
+  - path: /w/:tenantId/workspaces/:workspaceId/projects
+    file: src/views/ProjectListView.vue
+    auth_required: true
+    description: List and manage projects
+  - path: /w/:tenantId/workspaces/:workspaceId/projects/:projectId
+    file: src/views/ProjectBoardView.vue
+    auth_required: true
+    description: Kanban board and table view for tasks
+  - path: /w/:tenantId/members
+    file: src/views/MembersView.vue
+    auth_required: true
+    description: Team members management
+  - path: /w/:tenantId/billing
+    file: src/views/BillingView.vue
+    auth_required: true
+    description: Subscription and billing management
+  - path: /w/:tenantId/settings
+    file: src/views/SettingsView.vue
+    auth_required: true
+    description: Profile and business settings
+
+features:
+  - name: User Authentication
+    description: Login and register with email/password
+    files:
+      - src/views/LoginView.vue
+      - src/views/RegisterView.vue
+      - src/stores/auth.ts
+      - src/services/api.ts
+    entry_route: /login
+    user_interactions:
+      - Fill email input field with budi@manapro.id
+      - Fill password input field with password123
+      - Click Masuk button to login
+      - See redirect to workspace after successful login
+    api_calls:
+      - method: POST
+        endpoint: /auth/login
+      - method: POST
+        endpoint: /auth/register
+    auth_required: false
+
+  - name: Workspace Management
+    description: Create and manage workspaces within a tenant
+    files:
+      - src/views/WorkspaceListView.vue
+      - src/stores/workspace.ts
+    entry_route: /w/:tenantId/workspaces
+    user_interactions:
+      - View list of workspaces in card or table format
+      - Click Workspace Baru button to create new workspace
+      - Fill workspace name in modal
+      - Click Buat button to submit
+      - Click on workspace card to open projects
+      - Toggle between Card and Tabel view
+    api_calls:
+      - method: GET
+        endpoint: /workspaces
+      - method: POST
+        endpoint: /workspaces
+    auth_required: true
+
+  - name: Project Management
+    description: Create and manage projects, including templates
+    files:
+      - src/views/ProjectListView.vue
+      - src/stores/project.ts
+      - src/stores/template.ts
+    entry_route: /w/:tenantId/workspaces/:workspaceId/projects
+    user_interactions:
+      - View list of projects in card or table format
+      - Click Proyek Baru button to create new project
+      - Fill project name and description
+      - Click Dari Template button to create from template
+      - Select template category and template
+      - Click Use Template to create project with predefined columns
+      - Click on project to open Kanban board
+    api_calls:
+      - method: GET
+        endpoint: /projects
+      - method: POST
+        endpoint: /projects
+    auth_required: true
+
+  - name: Kanban Board Task Management
+    description: Manage tasks with drag-and-drop Kanban board
+    files:
+      - src/views/ProjectBoardView.vue
+      - src/components/kanban/KanbanBoard.vue
+      - src/components/kanban/KanbanColumn.vue
+      - src/components/kanban/TaskCard.vue
+      - src/components/table/TaskTableView.vue
+      - src/components/task/TaskDetail.vue
+      - src/components/task/TaskFormModal.vue
+      - src/stores/task.ts
+    entry_route: /w/:tenantId/workspaces/:workspaceId/projects/:projectId
+    user_interactions:
+      - View tasks in Kanban board with columns
+      - Toggle between Board and Tabel view
+      - Click Tambah Tugas to create new task
+      - Fill task title, description, priority, due date, assignee
+      - Drag task card to move between columns
+      - Click task card to open detail panel
+      - Add comments with @mentions
+      - View activity feed sidebar
+    api_calls:
+      - method: GET
+        endpoint: /tasks
+      - method: POST
+        endpoint: /tasks
+      - method: PATCH
+        endpoint: /tasks/:id/move
+      - method: POST
+        endpoint: /comments/task/:id
+    auth_required: true
+
+  - name: Team Members Management
+    description: Invite and manage team members with roles
+    files:
+      - src/views/MembersView.vue
+      - src/stores/tenant.ts
+    entry_route: /w/:tenantId/members
+    user_interactions:
+      - View list of team members
+      - Click Undang Anggota button to invite
+      - Fill email and select role
+      - Click Undang button to send invite
+      - Click menu on member to change role or remove
+    api_calls:
+      - method: GET
+        endpoint: /tenants/:id/members
+      - method: POST
+        endpoint: /tenants/:id/members
+      - method: PATCH
+        endpoint: /tenants/:id/members/:userId/role
+    auth_required: true
+
+  - name: Billing and Subscription
+    description: Manage subscription plans and invoices
+    files:
+      - src/views/BillingView.vue
+      - src/stores/subscription.ts
+    entry_route: /w/:tenantId/billing
+    user_interactions:
+      - View current plan and status
+      - View usage limits (members, projects)
+      - Click Upgrade button to change plan
+      - Select billing cycle (monthly/yearly)
+      - View invoice history
+      - Click Bayar to pay pending invoice
+    api_calls:
+      - method: GET
+        endpoint: /subscriptions
+      - method: POST
+        endpoint: /invoices/:id/pay
+    auth_required: true
+
+  - name: Settings and Profile
+    description: Update user profile and business settings
+    files:
+      - src/views/SettingsView.vue
+      - src/stores/auth.ts
+      - src/stores/tenant.ts
+    entry_route: /w/:tenantId/settings
+    user_interactions:
+      - View profile with avatar and info
+      - Click avatar to upload new photo
+      - Fill name, phone, division, position fields
+      - Click Simpan to save profile
+      - Click ID or EN to change language
+      - Click Bisnis tab to manage business settings
+      - Upload business logo
+    api_calls:
+      - method: PATCH
+        endpoint: /users/me
+      - method: PATCH
+        endpoint: /tenants/:id
+    auth_required: true
+
+  - name: Onboarding Flow
+    description: New user onboarding to create first business
+    files:
+      - src/views/OnboardingView.vue
+      - src/stores/tenant.ts
+    entry_route: /onboarding
+    user_interactions:
+      - Fill business name
+      - Select subscription plan (Free/Pro/Enterprise)
+      - Click Buat Bisnis button
+      - Redirect to workspace after creation
+    api_calls:
+      - method: POST
+        endpoint: /tenants
+    auth_required: true
+
+known_limitations:
+  - issue: Backend API must be running for full functionality
+    location: src/services/api.ts
+    impact: Set VITE_USE_MOCK=true to use mock data without backend
+  - issue: Notification system is frontend-only simulation
+    location: src/stores/notification.ts
+    impact: Notifications not persisted in database
+  - issue: Financial tracking not fully implemented
+    location: src/stores/subscription.ts
+    impact: Invoice payments are simulated

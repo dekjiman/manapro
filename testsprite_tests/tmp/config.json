@@ -1,0 +1,24 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173/http://localhost:5173",
+  "loginUser": "budi@manapro.id",
+  "loginPassword": "password123",
+  "executionArgs": {
+    "projectName": "manapro",
+    "projectPath": "D:\\workspace\\manapro",
+    "testIds": [
+      "login",
+      "workspace-create",
+      "settings-profile"
+    ],
+    "additionalInstruction": "Test login, workspace creation, and settings features",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-QnN4_jDfGKVo5D4NWzSXKK_2nIAXq8YgodJuse_rsrbFkcplLQDxV9VGP8GYYWj49CyZ4JcMpSc1DGDyDQbwdBhOJDm1CjGlEcO_MYM6Mtu0A33KFAMvUCA2D2i_IcTD_4g"
+    }
+  },
+  "serverPort": 61352,
+  "proxy": "http://9601a956-a52d-46cf-b612-24b838ca8f60:rL9zlbBMhfrxl9ZLhTDVHkIyvWzjDwwB@tun.testsprite.com:8080"
+}
