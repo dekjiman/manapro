@@ -57,7 +57,7 @@ cp backend/.env.example backend/.env
 # Edit backend/.env with your database credentials
 
 # Run database migrations
-cd backend && npx prisma migrate dev
+cd backend && npx drizzle-kit migrate
 ```
 
 ### Development

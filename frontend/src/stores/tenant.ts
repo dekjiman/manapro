@@ -1,11 +1,34 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Tenant, TenantMember, TenantSettings } from '@/types'
+import type { Tenant, TenantMember, TenantSettings, TenantMemberWithUser } from '@/types'
 import { api } from '@/services/api'
 import tenantsData from '@/mock/tenants.json'
 import tenantMembersData from '@/mock/tenantMembers.json'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+
+// Backend returns flat fields (maxMembers, maxProjects, etc.)
+// Frontend Tenant type expects nested settings ({ max_members, max_projects, ... })
+// This normalizer transforms backend response to frontend type
+function normalizeTenant(tenant: any): Tenant {
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    slug: tenant.slug,
+    logo_url: tenant.logoUrl ?? null,
+    owner_id: tenant.ownerId,
+    plan: tenant.plan,
+    settings: {
+      max_members: tenant.maxMembers ?? tenant.settings?.max_members ?? 3,
+      max_projects: tenant.maxProjects ?? tenant.settings?.max_projects ?? 2,
+      custom_branding: tenant.customBranding ?? tenant.settings?.custom_branding ?? false,
+      audit_log: tenant.auditLog ?? tenant.settings?.audit_log ?? false,
+      storage_limit_mb: tenant.storageLimitMb ?? tenant.settings?.storage_limit_mb ?? 100,
+      primary_color: tenant.primaryColor ?? tenant.settings?.primary_color ?? null,
+    },
+    created_at: tenant.createdAt ?? tenant.created_at ?? new Date().toISOString(),
+  }
+}
 
 export const PLAN_LIMITS: Record<string, TenantSettings> = {
   free: {
@@ -37,6 +60,8 @@ export const PLAN_LIMITS: Record<string, TenantSettings> = {
 export const useTenantStore = defineStore('tenant', () => {
   const tenants = ref<Tenant[]>([])
   const tenantMembers = ref<TenantMember[]>([])
+  // Full member data with user details (fetched from /tenants/:id)
+  const members = ref<TenantMemberWithUser[]>([])
   const currentTenantId = ref<string | null>(null)
   const isLoading = ref(false)
 
@@ -111,19 +136,19 @@ export const useTenantStore = defineStore('tenant', () => {
     if (USE_MOCK) return
     try {
       const data = await api.get<(Tenant & { role: string })[]>('/tenants/my')
-      tenants.value = data.map(t => ({ ...t, id: t.id }))
+      tenants.value = data.map(t => normalizeTenant(t))
 
       // Update tenant members from fetched data
-      const members: TenantMember[] = []
+      const mbrs: TenantMember[] = []
       for (const t of data) {
-        members.push({
-          user_id: t.owner_id,
+        mbrs.push({
+          user_id: t.ownerId,  // backend returns ownerId
           tenant_id: t.id,
           role: t.role as TenantMember['role'],
-          joined_at: t.created_at
+          joined_at: t.createdAt ?? new Date().toISOString()
         })
       }
-      tenantMembers.value = members
+      tenantMembers.value = mbrs
 
       // Update user tenant_ids
       const { useAuthStore } = await import('./auth')
@@ -141,6 +166,55 @@ export const useTenantStore = defineStore('tenant', () => {
     } catch (err) {
       console.error('Failed to fetch tenants:', err)
     }
+  }
+
+  // Fetch full member list with user details from backend
+  async function fetchMembers(tenantId: string) {
+    if (USE_MOCK) return
+    try {
+      const data = await api.get<any>(`/tenants/${tenantId}`)
+      // data.members comes from backend's findOne which includes user objects
+      members.value = (data.members || []).map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        joined_at: m.joinedAt ?? m.joined_at ?? new Date().toISOString(),
+        user: {
+          id: m.user.id,
+          name: m.user.name,
+          email: m.user.email,
+          avatar: m.user.avatar || '',
+          divisi: m.user.divisi || '',
+          jabatan: m.user.jabatan || '',
+        },
+      }))
+    } catch (err) {
+      console.error('Failed to fetch members:', err)
+    }
+  }
+
+  async function fetchInvitations(tenantId: string, status: string = 'pending') {
+    if (USE_MOCK) return []
+    try {
+      return await api.get(`/tenants/${tenantId}/invitations?status=${status}`)
+    } catch (err) {
+      console.error('Failed to fetch invitations:', err)
+      return []
+    }
+  }
+
+  async function cancelInvitation(tenantId: string, invitationId: string) {
+    if (USE_MOCK) return
+    return api.delete(`/tenants/${tenantId}/invitations/${invitationId}`)
+  }
+
+  async function resendInvitation(tenantId: string, invitationId: string) {
+    if (USE_MOCK) return
+    return api.post(`/tenants/${tenantId}/invitations/${invitationId}/resend`)
+  }
+
+  async function inviteMember(tenantId: string, email: string, role: string) {
+    if (USE_MOCK) return
+    return api.post(`/tenants/${tenantId}/invite`, { email, role })
   }
 
   async function createTenant(name: string, ownerId: string, plan: 'free' | 'pro' | 'enterprise' = 'free'): Promise<Tenant> {
@@ -173,7 +247,7 @@ export const useTenantStore = defineStore('tenant', () => {
       // API mode: create via backend
       try {
         const data = await api.post<Tenant>('/tenants', { name, slug, plan })
-        tenant = data
+        tenant = normalizeTenant(data)
         tenants.value.push(tenant)
         tenantMembers.value.push({
           user_id: ownerId,
@@ -274,7 +348,9 @@ export const useTenantStore = defineStore('tenant', () => {
   function canAddMember(tenantId: string): boolean {
     const tenant = tenants.value.find(t => t.id === tenantId)
     if (!tenant) return false
-    const currentCount = tenantMembers.value.filter(m => m.tenant_id === tenantId).length
+    const currentCount = members.value.length > 0
+      ? members.value.length
+      : tenantMembers.value.filter(m => m.tenant_id === tenantId).length
     return currentCount < tenant.settings.max_members
   }
 
@@ -287,6 +363,7 @@ export const useTenantStore = defineStore('tenant', () => {
   return {
     tenants,
     tenantMembers,
+    members,
     currentTenantId,
     currentTenant,
     currentTenantMembers,
@@ -296,6 +373,10 @@ export const useTenantStore = defineStore('tenant', () => {
     setCurrentTenant,
     init,
     fetchTenants,
+    fetchMembers,
+    fetchInvitations,
+    cancelInvitation,
+    resendInvitation,
     createTenant,
     updateTenant,
     updateTenantSettings,
@@ -303,6 +384,7 @@ export const useTenantStore = defineStore('tenant', () => {
     updateMemberRole,
     removeMember,
     canAddMember,
-    canAddProject
+    canAddProject,
+    inviteMember
   }
 })

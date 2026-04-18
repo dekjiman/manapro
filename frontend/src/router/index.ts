@@ -29,6 +29,18 @@ const router = createRouter({
       component: () => import('@/views/ForgotPasswordView.vue'),
       meta: { guest: true }
     },
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/VerifyEmailView.vue'),
+      meta: { guest: true }
+    },
+    {
+      path: '/invitations/accept',
+      name: 'accept-invitation',
+      component: () => import('@/views/AcceptInvitationView.vue'),
+      meta: { guest: true }
+    },
     // Onboarding (auth required, no tenant yet)
     {
       path: '/onboarding',

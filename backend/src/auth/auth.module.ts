@@ -1,13 +1,17 @@
-import { Module } from '@nestjs/common'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
-import { AuthService } from './auth.service'
-import { AuthController } from './auth.controller'
-import { JwtStrategy } from './jwt.strategy'
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { EmailModule } from '../email/email.module';
+import { InvitationsModule } from '../invitations/invitations.module';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     PassportModule,
+    EmailModule,
+    InvitationsModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'manapro-secret-key',
       signOptions: { expiresIn: '15m' },

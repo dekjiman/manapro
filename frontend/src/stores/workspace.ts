@@ -1,13 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Workspace } from '@/types'
 import { api } from '@/services/api'
-import workspacesData from '@/mock/workspaces.json'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
+// API response type (matches backend camelCase)
+interface WorkspaceApiResponse {
+  id: string
+  tenantId: string
+  name: string
+  ownerId: string
+  createdAt: string
+  updatedAt: string
+  members: Array<{ id: string; workspaceId: string; userId: string; joinedAt: string }>
+  projects: any[]
+}
 
 export const useWorkspaceStore = defineStore('workspace', () => {
-  const workspaces = ref<Workspace[]>(workspacesData as Workspace[])
+  const workspaces = ref<WorkspaceApiResponse[]>([])
   const currentWorkspaceId = ref<string | null>(null)
   const isLoading = ref(false)
 
@@ -16,16 +24,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   )
 
   function getTenantWorkspaces(tenantId: string) {
-    return workspaces.value.filter(w => w.tenant_id === tenantId)
+    return workspaces.value.filter(w => w.tenantId === tenantId)
   }
 
   function getUserWorkspaces(userId: string, tenantId?: string) {
-    if (USE_MOCK) {
-      let result = workspaces.value.filter(w => w.members.includes(userId))
-      if (tenantId) result = result.filter(w => w.tenant_id === tenantId)
-      return result
-    }
-    return workspaces.value.filter(w => w.tenant_id === tenantId)
+    let result = workspaces.value.filter(w => w.tenantId === tenantId)
+    // members from backend is array of objects { userId, ... }
+    if (userId) result = result.filter(w => w.members?.some(m => m.userId === userId))
+    return result
   }
 
   function setCurrentWorkspace(id: string) {
@@ -39,36 +45,34 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function fetchWorkspaces(tenantId: string) {
-    if (USE_MOCK) return
     isLoading.value = true
     try {
-      const data = await api.get<Workspace[]>(`/workspaces?tenantId=${tenantId}`)
+      const data = await api.get<WorkspaceApiResponse[]>(`/workspaces?tenantId=${tenantId}`)
       workspaces.value = data
-    } catch { /* use mock */ }
-    isLoading.value = false
-  }
-
-  function createWorkspace(name: string, tenantId: string, ownerId: string): Workspace {
-    const workspace: Workspace = {
-      id: `w${Date.now()}`,
-      tenant_id: tenantId,
-      name,
-      owner_id: ownerId,
-      members: [ownerId],
-      created_at: new Date().toISOString().split('T')[0]
+    } catch (err) {
+      console.error('Failed to fetch workspaces:', err)
+      throw err
+    } finally {
+      isLoading.value = false
     }
-    workspaces.value.push(workspace)
-    return workspace
   }
 
-  function updateWorkspace(id: string, data: Partial<Workspace>) {
+  async function createWorkspace(name: string, tenantId: string, ownerId: string): Promise<WorkspaceApiResponse> {
+    const created = await api.post<WorkspaceApiResponse>('/workspaces', { name })
+    workspaces.value.push(created)
+    return created
+  }
+
+  async function updateWorkspace(id: string, data: Partial<WorkspaceApiResponse>) {
+    await api.patch(`/workspaces/${id}`, data)
     const index = workspaces.value.findIndex(w => w.id === id)
     if (index !== -1) {
       workspaces.value[index] = { ...workspaces.value[index], ...data }
     }
   }
 
-  function deleteWorkspace(id: string) {
+  async function deleteWorkspace(id: string) {
+    await api.delete(`/workspaces/${id}`)
     const index = workspaces.value.findIndex(w => w.id === id)
     if (index !== -1) {
       workspaces.value.splice(index, 1)
@@ -81,13 +85,15 @@ export const useWorkspaceStore = defineStore('workspace', () => {
 
   function addMember(workspaceId: string, userId: string) {
     const ws = workspaces.value.find(w => w.id === workspaceId)
-    if (ws && !ws.members.includes(userId)) ws.members.push(userId)
+    if (ws && !ws.members?.some(m => m.userId === userId)) {
+      ws.members.push({ id: '', workspaceId, userId, joinedAt: '' })
+    }
   }
 
   function removeMember(workspaceId: string, userId: string) {
     const ws = workspaces.value.find(w => w.id === workspaceId)
     if (ws) {
-      const index = ws.members.indexOf(userId)
+      const index = ws.members.findIndex(m => m.userId === userId)
       if (index !== -1) ws.members.splice(index, 1)
     }
   }

@@ -1,36 +1,93 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { db } from '../db';
+import { projects, columns, tasks } from '../db/schema';
+import { eq, asc } from 'drizzle-orm';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
-
   async findByTenant(tenantId: string) {
-    return this.prisma.project.findMany({ where: { tenantId } })
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.tenantId, tenantId));
   }
 
   async findByWorkspace(workspaceId: string) {
-    return this.prisma.project.findMany({ where: { workspaceId } })
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.workspaceId, workspaceId));
   }
 
   async findOne(id: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id },
-      include: { columns: { orderBy: { position: 'asc' } }, tasks: true },
-    })
-    if (!project) throw new NotFoundException('Project tidak ditemukan')
-    return project
+    const [project] = await db
+      .select({
+        id: projects.id,
+        tenantId: projects.tenantId,
+        workspaceId: projects.workspaceId,
+        name: projects.name,
+        description: projects.description,
+        startDate: projects.startDate,
+        dueDate: projects.dueDate,
+        status: projects.status,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        columns: columns,
+        tasks: tasks,
+      })
+      .from(projects)
+      .leftJoin(columns, eq(projects.id, columns.projectId))
+      .leftJoin(tasks, eq(projects.id, tasks.projectId))
+      .where(eq(projects.id, id))
+      .orderBy(asc(columns.position));
+
+    if (!project) throw new NotFoundException('Project tidak ditemukan');
+    return project;
   }
 
   async create(data: any) {
-    return this.prisma.project.create({ data })
+    // Validate required fields
+    const tenantId = data.tenant_id || data.tenantId;
+    const workspaceId = data.workspace_id || data.workspaceId;
+
+    if (!tenantId) throw new BadRequestException('tenantId is required');
+    if (!workspaceId) throw new BadRequestException('workspaceId is required');
+    if (!data.name) throw new BadRequestException('name is required');
+
+    // Convert date strings to Date objects if needed
+    const startDate = data.start_date || data.startDate
+      ? new Date(data.start_date || data.startDate)
+      : undefined;
+    const dueDate = data.due_date || data.dueDate
+      ? new Date(data.due_date || data.dueDate)
+      : undefined;
+
+    const [project] = await db.insert(projects).values({
+      tenantId,
+      workspaceId,
+      name: data.name,
+      description: data.description,
+      startDate,
+      dueDate,
+      status: data.status || 'active',
+    }).returning();
+    return project;
   }
 
   async update(id: string, data: any) {
-    return this.prisma.project.update({ where: { id }, data })
+    const [project] = await db
+      .update(projects)
+      .set(data)
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
   }
 
   async delete(id: string) {
-    return this.prisma.project.delete({ where: { id } })
+    const [project] = await db
+      .delete(projects)
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
   }
 }

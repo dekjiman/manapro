@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTenantStore } from '@/stores/tenant'
 import { useAuthStore } from '@/stores/auth'
 import { useUIStore } from '@/stores/ui'
-import { api } from '@/services/api'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
@@ -22,11 +21,30 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
 
 const tenantId = computed(() => route.params.tenantId as string)
 const tenant = computed(() => tenantStore.tenants.find(t => t.id === tenantId.value))
-const members = computed(() => tenantStore.currentTenantMembers)
+// Use rich member data from fetchMembers, fallback to currentTenantMembers
+const members = computed(() =>
+  tenantStore.members.length > 0
+    ? tenantStore.members
+    : tenantStore.currentTenantMembers
+)
+
+onMounted(async () => {
+  // Fetch full member list with user details
+  await tenantStore.fetchMembers(tenantId.value)
+  // Fetch pending invitations
+  if (canManage.value) {
+    isLoadingInvitations.value = true
+    invitations.value = await tenantStore.fetchInvitations(tenantId.value)
+    isLoadingInvitations.value = false
+  }
+})
 
 const showInviteModal = ref(false)
 const inviteEmail = ref('')
 const inviteRole = ref<'admin' | 'member' | 'viewer'>('member')
+const isInviting = ref(false)
+const invitations = ref<any[]>([])
+const isLoadingInvitations = ref(false)
 
 const userRole = computed(() => {
   if (!authStore.currentUser) return null
@@ -35,20 +53,25 @@ const userRole = computed(() => {
 
 const canManage = computed(() => userRole.value === 'owner' || userRole.value === 'admin')
 
-function getMemberName(userId: string) {
-  return authStore.users.find(u => u.id === userId)?.name || 'Unknown'
+// Use rich member data when available
+function getMemberName(member: any) {
+  return member.user?.name || member.name || 'Unknown'
 }
 
-function getMemberEmail(userId: string) {
-  return authStore.users.find(u => u.id === userId)?.email || ''
+function getMemberEmail(member: any) {
+  return member.user?.email || member.email || ''
 }
 
-function getMemberDivisi(userId: string) {
-  return authStore.users.find(u => u.id === userId)?.divisi || ''
+function getMemberDivisi(member: any) {
+  return member.user?.divisi || member.divisi || ''
 }
 
-function getMemberJabatan(userId: string) {
-  return authStore.users.find(u => u.id === userId)?.jabatan || ''
+function getMemberJabatan(member: any) {
+  return member.user?.jabatan || member.jabatan || ''
+}
+
+function getMemberId(member: any) {
+  return member.user?.id || member.user_id || ''
 }
 
 function getRoleBadgeVariant(role: string) {
@@ -92,31 +115,21 @@ async function handleInvite() {
     return
   }
 
-  // API mode: search user by email then add as member
-  try {
-    // Find user by email
-    const users = await api.get<any[]>('/users')
-    const user = users.find((u: any) => u.email === inviteEmail.value.trim())
-
-    if (!user) {
-      uiStore.showToast('Email tidak ditemukan. User harus mendaftar terlebih dahulu.', 'error')
-      return
+    // API mode: use invitation system
+    try {
+      isInviting.value = true
+      await tenantStore.inviteMember(tenantId.value, inviteEmail.value.trim(), inviteRole.value)
+      showInviteModal.value = false
+      inviteEmail.value = ''
+      uiStore.showToast('Undangan berhasil dikirim ke email!', 'success')
+      // Refresh member list and invitations
+      await tenantStore.fetchMembers(tenantId.value)
+      invitations.value = await tenantStore.fetchInvitations(tenantId.value)
+    } catch (err: any) {
+      uiStore.showToast(err.message || 'Gagal mengundang anggota', 'error')
+    } finally {
+      isInviting.value = false
     }
-
-    // Add member to tenant
-    await api.post(`/tenants/${tenantId.value}/members`, {
-      userId: user.id,
-      role: inviteRole.value,
-    })
-
-    // Update local state
-    tenantStore.addMember(tenantId.value, user.id, inviteRole.value)
-    showInviteModal.value = false
-    inviteEmail.value = ''
-    uiStore.showToast(`${user.name} berhasil diundang!`, 'success')
-  } catch (err: any) {
-    uiStore.showToast(err.message || 'Gagal mengundang anggota', 'error')
-  }
 }
 
 function handleUpdateRole(userId: string, newRole: string) {
@@ -128,6 +141,27 @@ function handleRemoveMember(userId: string) {
   if (confirm('Yakin ingin menghapus anggota ini?')) {
     tenantStore.removeMember(tenantId.value, userId)
     uiStore.showToast('Anggota berhasil dihapus', 'success')
+  }
+}
+
+async function handleCancelInvitation(invitationId: string) {
+  if (confirm('Yakin ingin membatalkan undangan ini?')) {
+    try {
+      await tenantStore.cancelInvitation(tenantId.value, invitationId)
+      invitations.value = invitations.value.filter(inv => inv.id !== invitationId)
+      uiStore.showToast('Undangan berhasil dibatalkan', 'success')
+    } catch (err: any) {
+      uiStore.showToast(err.message || 'Gagal membatalkan undangan', 'error')
+    }
+  }
+}
+
+async function handleResendInvitation(invitationId: string) {
+  try {
+    await tenantStore.resendInvitation(tenantId.value, invitationId)
+    uiStore.showToast('Undangan berhasil dikirim ulang', 'success')
+  } catch (err: any) {
+    uiStore.showToast(err.message || 'Gagal mengirim ulang undangan', 'error')
   }
 }
 
@@ -160,20 +194,20 @@ const roleOptions = [
       <div class="divide-y divide-border">
         <div
           v-for="member in members"
-          :key="member.user_id"
+          :key="member.id"
           class="flex items-center justify-between py-4 first:pt-0 last:pb-0"
         >
           <div class="flex items-center gap-3">
-            <BaseAvatar :name="getMemberName(member.user_id)" />
+            <BaseAvatar :name="getMemberName(member)" />
             <div>
-              <p class="font-medium text-text-primary">{{ getMemberName(member.user_id) }}</p>
-              <p class="text-sm text-text-secondary">{{ getMemberEmail(member.user_id) }}</p>
+              <p class="font-medium text-text-primary">{{ getMemberName(member) }}</p>
+              <p class="text-sm text-text-secondary">{{ getMemberEmail(member) }}</p>
               <div class="flex items-center gap-2 mt-1">
-                <span v-if="getMemberJabatan(member.user_id)" class="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                  {{ getMemberJabatan(member.user_id) }}
+                <span v-if="getMemberJabatan(member)" class="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                  {{ getMemberJabatan(member) }}
                 </span>
-                <span v-if="getMemberDivisi(member.user_id)" class="text-xs bg-gray-100 text-text-secondary px-1.5 py-0.5 rounded">
-                  {{ getMemberDivisi(member.user_id) }}
+                <span v-if="getMemberDivisi(member)" class="text-xs bg-gray-100 text-text-secondary px-1.5 py-0.5 rounded">
+                  {{ getMemberDivisi(member) }}
                 </span>
               </div>
             </div>
@@ -194,13 +228,13 @@ const roleOptions = [
                     v-for="opt in roleOptions.filter(o => o.value !== member.role)"
                     :key="opt.value"
                     class="w-full px-3 py-2 text-sm text-left text-text-secondary hover:bg-gray-100 rounded-md"
-                    @click="handleUpdateRole(member.user_id, opt.value)"
+                    @click="handleUpdateRole(getMemberId(member), opt.value)"
                   >
                     Ubah ke {{ opt.label }}
                   </button>
                   <button
                     class="w-full px-3 py-2 text-sm text-left text-danger hover:bg-red-50 rounded-md"
-                    @click="handleRemoveMember(member.user_id)"
+                    @click="handleRemoveMember(getMemberId(member))"
                   >
                     Hapus Anggota
                   </button>
@@ -216,6 +250,70 @@ const roleOptions = [
         <p class="text-text-secondary">Belum ada anggota</p>
       </div>
     </BaseCard>
+
+    <!-- Pending Invitations -->
+    <div v-if="canManage && (invitations.length > 0 || isLoadingInvitations)" class="mt-8">
+      <h2 class="text-lg font-semibold text-text-primary mb-4">Undangan Tertunda</h2>
+      <BaseCard>
+        <div v-if="isLoadingInvitations" class="py-8 text-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p class="text-text-secondary mt-2">Memuat undangan...</p>
+        </div>
+        <div v-else-if="invitations.length === 0" class="py-8 text-center">
+          <p class="text-text-secondary">Tidak ada undangan tertunda</p>
+        </div>
+        <div v-else class="divide-y divide-border">
+          <div
+            v-for="invitation in invitations"
+            :key="invitation.id"
+            class="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <p class="font-medium text-text-primary">{{ invitation.email }}</p>
+                <p class="text-sm text-text-secondary">
+                  Diundang {{ new Date(invitation.createdAt).toLocaleDateString('id-ID') }}
+                  • Kadaluarsa {{ new Date(invitation.expiresAt).toLocaleDateString('id-ID') }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <BaseBadge :variant="getRoleBadgeVariant(invitation.role)">
+                {{ getRoleLabel(invitation.role) }}
+              </BaseBadge>
+              <div class="relative group">
+                <button class="p-1.5 rounded-lg text-text-secondary hover:bg-gray-100 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                <div class="absolute right-0 top-full mt-1 w-48 bg-surface rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  <div class="p-1">
+                    <button
+                      class="w-full px-3 py-2 text-sm text-left text-text-secondary hover:bg-gray-100 rounded-md"
+                      @click="handleResendInvitation(invitation.id)"
+                    >
+                      Kirim Ulang Undangan
+                    </button>
+                    <button
+                      class="w-full px-3 py-2 text-sm text-left text-danger hover:bg-red-50 rounded-md"
+                      @click="handleCancelInvitation(invitation.id)"
+                    >
+                      Batalkan Undangan
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </BaseCard>
+    </div>
 
     <!-- Upgrade prompt -->
     <div v-if="!tenantStore.canAddMember(tenantId)" class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
@@ -251,7 +349,7 @@ const roleOptions = [
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <BaseButton variant="secondary" @click="showInviteModal = false">Batal</BaseButton>
-          <BaseButton type="submit" :disabled="!inviteEmail.trim()">Undang</BaseButton>
+          <BaseButton type="submit" :loading="isInviting" :disabled="!inviteEmail.trim()">Undang</BaseButton>
         </div>
       </form>
     </BaseModal>

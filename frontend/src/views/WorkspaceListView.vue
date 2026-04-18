@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
@@ -23,8 +23,23 @@ const uiStore = useUIStore()
 const tenantId = computed(() => route.params.tenantId as string)
 const tenant = computed(() => tenantStore.tenants.find(t => t.id === tenantId.value))
 
+// Fetch workspaces on mount and when tenantId changes
+onMounted(async () => {
+  if (tenantId.value) {
+    await workspaceStore.fetchWorkspaces(tenantId.value)
+  }
+})
+
+watch(tenantId, async (newTenantId) => {
+  if (newTenantId) {
+    await workspaceStore.fetchWorkspaces(newTenantId)
+  }
+})
+
 const showCreateModal = ref(false)
+const showEditModal = ref(false)
 const newWorkspaceName = ref('')
+const editingWorkspace = ref<{ id: string; name: string } | null>(null)
 const viewMode = ref<'card' | 'table'>('card')
 
 const userWorkspaces = computed(() => {
@@ -47,7 +62,7 @@ function openWorkspace(workspaceId: string) {
   }
 }
 
-function handleCreate() {
+async function handleCreate() {
   if (!newWorkspaceName.value.trim() || !authStore.currentUser || !tenantId.value) return
 
   const currentCount = userWorkspaces.value.length
@@ -56,11 +71,25 @@ function handleCreate() {
     return
   }
 
-  const ws = workspaceStore.createWorkspace(newWorkspaceName.value.trim(), tenantId.value, authStore.currentUser.id)
+  const ws = await workspaceStore.createWorkspace(newWorkspaceName.value.trim(), tenantId.value, authStore.currentUser.id)
   uiStore.showToast('Workspace berhasil dibuat!', 'success')
   showCreateModal.value = false
   newWorkspaceName.value = ''
   openWorkspace(ws.id)
+}
+
+function openEditModal(ws: typeof userWorkspaces.value[0]) {
+  editingWorkspace.value = { id: ws.id, name: ws.name }
+  showEditModal.value = true
+}
+
+function handleEdit() {
+  if (!editingWorkspace.value?.name.trim() || !tenantId.value) return
+
+  workspaceStore.updateWorkspace(editingWorkspace.value.id, { name: editingWorkspace.value.name.trim() })
+  uiStore.showToast('Workspace berhasil diperbarui!', 'success')
+  showEditModal.value = false
+  editingWorkspace.value = null
 }
 
 function formatDate(date: string) {
@@ -124,11 +153,21 @@ function formatDate(date: string) {
           </div>
           <div class="flex items-center gap-1">
             <span
-              v-if="ws.owner_id === authStore.currentUser?.id"
+              v-if="ws.ownerId === authStore.currentUser?.id"
               class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full"
             >
               Owner
             </span>
+            <button
+              class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              :disabled="ws.ownerId !== authStore.currentUser?.id"
+              :class="{ 'opacity-50 cursor-not-allowed': ws.ownerId !== authStore.currentUser?.id }"
+              @click.stop="openEditModal(ws)"
+            >
+              <svg class="w-4 h-4 text-text-secondary hover:text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
           </div>
         </div>
         <h3 class="text-lg font-semibold text-text-primary mb-2">{{ ws.name }}</h3>
@@ -178,19 +217,31 @@ function formatDate(date: string) {
                 </div>
               </td>
               <td class="py-3 px-4">
-                <BaseBadge v-if="ws.owner_id === authStore.currentUser?.id" variant="info">Owner</BaseBadge>
+                <BaseBadge v-if="ws.ownerId === authStore.currentUser?.id" variant="info">Owner</BaseBadge>
                 <BaseBadge v-else variant="default">Member</BaseBadge>
               </td>
               <td class="py-3 px-4 text-sm text-text-primary">{{ getProjectCount(ws.id) }}</td>
               <td class="py-3 px-4 text-sm text-text-primary">{{ getMemberCount(ws) }}</td>
-              <td class="py-3 px-4 text-sm text-text-secondary">{{ formatDate(ws.created_at) }}</td>
+              <td class="py-3 px-4 text-sm text-text-secondary">{{ formatDate(ws.createdAt) }}</td>
               <td class="py-3 px-4">
-                <button
-                  class="text-sm text-primary hover:underline"
-                  @click="openWorkspace(ws.id)"
-                >
-                  Buka
-                </button>
+                <div class="flex items-center gap-3">
+                  <button
+                    class="text-sm text-primary hover:underline"
+                    @click="openWorkspace(ws.id)"
+                  >
+                    Buka
+                  </button>
+                  <button
+                    class="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                    :disabled="ws.ownerId !== authStore.currentUser?.id"
+                    :class="{ 'opacity-50 cursor-not-allowed': ws.ownerId !== authStore.currentUser?.id }"
+                    @click="openEditModal(ws)"
+                  >
+                    <svg class="w-4 h-4 text-text-secondary hover:text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -223,6 +274,23 @@ function formatDate(date: string) {
         <div class="flex justify-end gap-3 mt-6">
           <BaseButton variant="secondary" @click="showCreateModal = false">Batal</BaseButton>
           <BaseButton type="submit" :disabled="!newWorkspaceName.trim()">Buat</BaseButton>
+        </div>
+      </form>
+    </BaseModal>
+
+    <!-- Edit Modal -->
+    <BaseModal :show="showEditModal" title="Edit Workspace" size="sm" @close="showEditModal = false">
+      <form @submit.prevent="handleEdit">
+        <div class="space-y-4">
+          <BaseInput
+            v-model="editingWorkspace!.name"
+            label="Nama Workspace"
+            placeholder="Contoh: Tim Marketing"
+          />
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <BaseButton variant="secondary" @click="showEditModal = false">Batal</BaseButton>
+          <BaseButton type="submit" :disabled="!editingWorkspace?.name.trim()">Simpan</BaseButton>
         </div>
       </form>
     </BaseModal>

@@ -29,6 +29,7 @@ const tenantId = computed(() => route.params.tenantId as string)
 
 const showCreateModal = ref(false)
 const showTemplateModal = ref(false)
+const showEditModal = ref(false)
 const viewMode = ref<'card' | 'table'>('card')
 const newProject = ref({
   name: '',
@@ -36,6 +37,14 @@ const newProject = ref({
   start_date: '',
   due_date: ''
 })
+const editingProject = ref<{
+  id: string
+  name: string
+  description: string
+  start_date: string
+  due_date: string
+  status: string
+} | null>(null)
 
 const workspace = computed(() =>
   workspaceStore.workspaces.find(w => w.id === workspaceId.value)
@@ -88,10 +97,10 @@ function handleCreate() {
   openProject(project.id)
 }
 
-function handleTemplateSelect(template: Template) {
-  if (!tenantId.value) return
+async function handleTemplateSelect(template: Template) {
+  if (!tenantId.value || !workspaceId.value) return
 
-  const project = projectStore.createProject({
+  const project = await projectStore.createProject({
     tenant_id: tenantId.value,
     workspace_id: workspaceId.value,
     name: template.name,
@@ -102,21 +111,22 @@ function handleTemplateSelect(template: Template) {
   })
 
   // Create columns from template
-  template.columns.forEach((col, index) => {
-    taskStore.createColumn(project.id, col.name)
+  for (let index = 0; index < template.columns.length; index++) {
+    const col = template.columns[index]
+    await taskStore.createColumn(project.id, col.name)
     const columns = taskStore.getProjectColumns(project.id)
     const newCol = columns[columns.length - 1]
     if (newCol) {
-      taskStore.updateColumn(newCol.id, { color: col.color, position: index })
+      await taskStore.updateColumn(newCol.id, { color: col.color, position: index })
     }
-  })
+  }
 
   // Create sample tasks
-  template.sampleTasks.forEach(sampleTask => {
+  for (const sampleTask of template.sampleTasks) {
     const columns = taskStore.getProjectColumns(project.id)
     const targetColumn = columns[sampleTask.column]
     if (targetColumn) {
-      taskStore.createTask({
+      await taskStore.createTask({
         column_id: targetColumn.id,
         project_id: project.id,
         title: sampleTask.title,
@@ -128,7 +138,7 @@ function handleTemplateSelect(template: Template) {
         position: 0
       })
     }
-  })
+  }
 
   showTemplateModal.value = false
   uiStore.showToast('Proyek dari template berhasil dibuat!', 'success')
@@ -138,6 +148,33 @@ function handleTemplateSelect(template: Template) {
 function handleTemplateSkip() {
   showTemplateModal.value = false
   showCreateModal.value = true
+}
+
+function openEditModal(project: typeof projects.value[0]) {
+  editingProject.value = {
+    id: project.id,
+    name: project.name,
+    description: project.description || '',
+    start_date: project.start_date || '',
+    due_date: project.due_date || '',
+    status: project.status || 'active'
+  }
+  showEditModal.value = true
+}
+
+function handleEdit() {
+  if (!editingProject.value?.name.trim() || !tenantId.value) return
+
+  projectStore.updateProject(editingProject.value.id, {
+    name: editingProject.value.name.trim(),
+    description: editingProject.value.description,
+    start_date: editingProject.value.start_date,
+    due_date: editingProject.value.due_date,
+    status: editingProject.value.status
+  })
+  uiStore.showToast('Proyek berhasil diperbarui!', 'success')
+  showEditModal.value = false
+  editingProject.value = null
 }
 
 function getStatusColor(status: string) {
@@ -228,9 +265,19 @@ function formatDate(date: string) {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
             </svg>
           </div>
-          <BaseBadge :variant="getStatusColor(project.status)">
-            {{ getStatusLabel(project.status) }}
-          </BaseBadge>
+          <div class="flex items-center gap-1">
+            <BaseBadge :variant="getStatusColor(project.status)">
+              {{ getStatusLabel(project.status) }}
+            </BaseBadge>
+            <button
+              class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+              @click.stop="openEditModal(project)"
+            >
+              <svg class="w-4 h-4 text-text-secondary hover:text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          </div>
         </div>
         <h3 class="text-lg font-semibold text-text-primary mb-1">{{ project.name }}</h3>
         <p class="text-sm text-text-secondary mb-4 line-clamp-2">{{ project.description }}</p>
@@ -295,7 +342,14 @@ function formatDate(date: string) {
               <td class="py-3 px-4 text-sm text-text-secondary">{{ formatDate(project.start_date) }}</td>
               <td class="py-3 px-4 text-sm text-text-secondary">{{ formatDate(project.due_date) }}</td>
               <td class="py-3 px-4">
-                <button class="text-sm text-primary hover:underline" @click="openProject(project.id)">Buka</button>
+                <div class="flex items-center gap-2">
+                  <button class="text-sm text-primary hover:underline" @click="openProject(project.id)">Buka</button>
+                  <button class="p-1.5 hover:bg-gray-200 rounded transition-colors" @click="openEditModal(project)">
+                    <svg class="w-4 h-4 text-text-secondary hover:text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -337,6 +391,35 @@ function formatDate(date: string) {
         <div class="flex justify-end gap-3 mt-6">
           <BaseButton variant="secondary" @click="showCreateModal = false">Batal</BaseButton>
           <BaseButton type="submit" :disabled="!newProject.name.trim()">Buat</BaseButton>
+        </div>
+      </form>
+    </BaseModal>
+
+    <!-- Edit Modal -->
+    <BaseModal :show="showEditModal" title="Edit Proyek" @close="showEditModal = false">
+      <form @submit.prevent="handleEdit">
+        <div class="space-y-4">
+          <BaseInput v-model="editingProject!.name" label="Nama Proyek" placeholder="Contoh: Rebranding Toko" />
+          <BaseTextarea v-model="editingProject!.description" label="Deskripsi" placeholder="Jelaskan tujuan proyek ini" :rows="3" />
+          <div class="grid grid-cols-2 gap-4">
+            <BaseInput v-model="editingProject!.start_date" label="Tanggal Mulai" type="date" />
+            <BaseInput v-model="editingProject!.due_date" label="Tanggal Selesai" type="date" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1">Status</label>
+            <select
+              v-model="editingProject!.status"
+              class="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="active">Aktif</option>
+              <option value="completed">Selesai</option>
+              <option value="archived">Arsip</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <BaseButton variant="secondary" @click="showEditModal = false">Batal</BaseButton>
+          <BaseButton type="submit" :disabled="!editingProject?.name.trim()">Simpan</BaseButton>
         </div>
       </form>
     </BaseModal>

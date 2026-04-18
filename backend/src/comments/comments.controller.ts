@@ -1,8 +1,17 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common'
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger'
-import { CommentsService } from './comments.service'
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'
-import { CurrentUser } from '../common/decorators/current-user.decorator'
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { CommentsService } from './comments.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Comments')
 @ApiBearerAuth()
@@ -13,8 +22,16 @@ export class CommentsController {
 
   @Get('task/:taskId')
   @ApiOperation({ summary: 'Get comments by task' })
-  findByTask(@Param('taskId') taskId: string) {
-    return this.commentsService.findByTask(taskId)
+  findByTask(
+    @Param('taskId') taskId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.commentsService.findByTask(
+      taskId,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
   }
 
   @Post('task/:taskId')
@@ -22,14 +39,19 @@ export class CommentsController {
   create(
     @Param('taskId') taskId: string,
     @CurrentUser() user: any,
-    @Body() body: { content: string; mentions?: string[] },
+    @Body() body: { content: string; projectId: string },
   ) {
-    return this.commentsService.create(taskId, user.id, body.content, body.mentions)
+    return this.commentsService.create(
+      taskId,
+      user.id,
+      body.content,
+      body.projectId,
+    );
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete comment' })
   delete(@Param('id') id: string) {
-    return this.commentsService.delete(id)
+    return this.commentsService.delete(id);
   }
 }

@@ -1,34 +1,67 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
+import { Injectable } from '@nestjs/common';
+import { db } from '../db';
+import { columns, tasks } from '../db/schema';
+import { eq, asc } from 'drizzle-orm';
 
 @Injectable()
 export class ColumnsService {
-  constructor(private prisma: PrismaService) {}
-
   async findByProject(projectId: string) {
-    return this.prisma.column.findMany({
-      where: { projectId },
-      orderBy: { position: 'asc' },
-      include: { tasks: { orderBy: { position: 'asc' } } },
-    })
+    return await db
+      .select({
+        id: columns.id,
+        projectId: columns.projectId,
+        name: columns.name,
+        position: columns.position,
+        color: columns.color,
+        createdAt: columns.createdAt,
+        updatedAt: columns.updatedAt,
+        tasks: tasks,
+      })
+      .from(columns)
+      .leftJoin(tasks, eq(columns.id, tasks.columnId))
+      .where(eq(columns.projectId, projectId))
+      .orderBy(asc(columns.position), asc(tasks.position));
   }
 
-  async create(data: { projectId: string; name: string; color?: string; position: number }) {
-    return this.prisma.column.create({ data })
+  async create(data: {
+    projectId: string;
+    name: string;
+    color?: string;
+    position: number;
+  }) {
+    const [column] = await db.insert(columns).values(data).returning();
+    return column;
   }
 
   async update(id: string, data: any) {
-    return this.prisma.column.update({ where: { id }, data })
+    const [column] = await db
+      .update(columns)
+      .set(data)
+      .where(eq(columns.id, id))
+      .returning();
+    return column;
   }
 
   async delete(id: string) {
-    return this.prisma.column.delete({ where: { id } })
+    const [column] = await db
+      .delete(columns)
+      .where(eq(columns.id, id))
+      .returning();
+    return column;
   }
 
   async reorder(projectId: string, columnIds: string[]) {
-    const updates = columnIds.map((id, index) =>
-      this.prisma.column.update({ where: { id }, data: { position: index } })
-    )
-    return this.prisma.$transaction(updates)
+    return await db.transaction(async (tx) => {
+      const results: any[] = [];
+      for (let index = 0; index < columnIds.length; index++) {
+        const result = await tx
+          .update(columns)
+          .set({ position: index })
+          .where(eq(columns.id, columnIds[index]))
+          .returning();
+        results.push(result[0]);
+      }
+      return results;
+    });
   }
 }

@@ -27,6 +27,20 @@ export interface TenantMember {
   joined_at: string
 }
 
+export interface TenantMemberWithUser {
+  id: string
+  role: 'owner' | 'admin' | 'member' | 'viewer'
+  joined_at: string
+  user: {
+    id: string
+    name: string
+    email: string
+    avatar: string
+    divisi: string
+    jabatan: string
+  }
+}
+
 export interface Subscription {
   id: string
   tenant_id: string
@@ -73,6 +87,7 @@ export interface User {
   jabatan: string
   phone: string
   language_pref: 'id' | 'en'
+  email_verified?: boolean
 }
 
 export interface Workspace {
@@ -158,6 +173,7 @@ export interface PlanFeatures {
   price: number
   price_yearly: number
   max_members: number
+  max_workspaces: number
   max_projects: number
   storage_mb: number
   kanban: boolean

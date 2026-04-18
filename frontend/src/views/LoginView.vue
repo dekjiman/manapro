@@ -12,11 +12,12 @@ const authStore = useAuthStore()
 const uiStore = useUIStore()
 const { t } = useI18n()
 
-const email = ref('budi@manapro.id')
+const email = ref('sramadhan@gmail.com')
 const password = ref('password123')
 const showPassword = ref(false)
 
 async function handleLogin() {
+  
   const success = await authStore.login(email.value, password.value)
   if (success) {
     uiStore.showToast(t('toast.loginSuccess'), 'success')
@@ -115,7 +116,7 @@ async function handleLogin() {
       </form>
 
       <p class="text-center text-xs text-text-secondary mt-6">
-        Demo: <code class="bg-gray-100 px-1.5 py-0.5 rounded">budi@manapro.id</code> / {{ t('auth.minPassword') }}
+        Demo: <code class="bg-gray-100 px-1.5 py-0.5 rounded">sramadhan@gmail.com</code> / <code class="bg-gray-100 px-1.5 py-0.5 rounded">password123</code>
       </p>
     </div>
   </div>

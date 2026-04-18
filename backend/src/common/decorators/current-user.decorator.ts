@@ -1,15 +1,15 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common'
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest()
-    return request.user
+    const request = ctx.switchToHttp().getRequest();
+    return request.user;
   },
-)
+);
 
 export const CurrentTenant = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest()
-    return request.headers['x-tenant-id'] || request.query.tenantId
+    const request = ctx.switchToHttp().getRequest();
+    return request.headers['x-tenant-id'] || request.query.tenantId;
   },
-)
+);

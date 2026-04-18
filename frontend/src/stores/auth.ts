@@ -71,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(name: string, email: string, _password: string): Promise<User | null> {
+  async function register(name: string, email: string, _password: string, invitationToken?: string): Promise<boolean> {
     isLoading.value = true
     error.value = null
 
@@ -80,9 +80,10 @@ export const useAuthStore = defineStore('auth', () => {
       if (exists) {
         error.value = 'Email sudah terdaftar'
         isLoading.value = false
-        return null
+        return false
       }
 
+      // Add user but don't log in - wait for email verification
       const newUser: User = {
         id: `u${Date.now()}`,
         name,
@@ -93,27 +94,32 @@ export const useAuthStore = defineStore('auth', () => {
         divisi: '',
         jabatan: '',
         phone: '',
-        language_pref: 'id'
+        language_pref: 'id',
+        email_verified: false // Assume added to User type
       }
 
       users.value.push(newUser)
-      currentUser.value = newUser
-      localStorage.setItem('manapro_user', JSON.stringify(newUser))
       isLoading.value = false
-      return newUser
+      return true
     }
 
     try {
-      const data = await api.post<{ user: User; accessToken: string }>('/auth/register', { name, email, password: _password })
-      currentUser.value = data.user
-      localStorage.setItem('manapro_user', JSON.stringify(data.user))
-      localStorage.setItem('manapro_token', data.accessToken)
+      const data = await api.post<{ user: User; accessToken?: string }>('/auth/register', { name, email, password: _password, invitationToken })
+      if (invitationToken && data.accessToken) {
+        // Auto-login for invited users
+        currentUser.value = data.user
+        localStorage.setItem('manapro_user', JSON.stringify(data.user))
+        localStorage.setItem('manapro_token', data.accessToken)
+
+        // Fetch user's tenants
+        await fetchUserTenants()
+      }
       isLoading.value = false
-      return data.user
+      return true
     } catch (err: any) {
       error.value = err.message || 'Registrasi gagal'
       isLoading.value = false
-      return null
+      return false
     }
   }
 

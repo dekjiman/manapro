@@ -2,12 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Project } from '@/types'
 import { api } from '@/services/api'
-import projectsData from '@/mock/projects.json'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
 
 export const useProjectStore = defineStore('project', () => {
-  const projects = ref<Project[]>(projectsData as Project[])
+  const projects = ref<Project[]>([])
   const currentProjectId = ref<string | null>(null)
   const isLoading = ref(false)
 
@@ -36,33 +33,34 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   async function fetchProjects(tenantId: string) {
-    if (USE_MOCK) return
     isLoading.value = true
     try {
       const data = await api.get<Project[]>(`/projects?tenantId=${tenantId}`)
       projects.value = data
-    } catch { /* use mock */ }
-    isLoading.value = false
-  }
-
-  function createProject(data: Omit<Project, 'id' | 'created_at'>): Project {
-    const project: Project = {
-      ...data,
-      id: `p${Date.now()}`,
-      created_at: new Date().toISOString().split('T')[0]
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+      throw err
+    } finally {
+      isLoading.value = false
     }
-    projects.value.push(project)
-    return project
   }
 
-  function updateProject(id: string, data: Partial<Project>) {
+  async function createProject(data: Omit<Project, 'id' | 'created_at'>): Promise<Project> {
+    const created = await api.post<Project>('/projects', data)
+    projects.value.push(created)
+    return created
+  }
+
+  async function updateProject(id: string, data: Partial<Project>) {
+    await api.patch(`/projects/${id}`, data)
     const index = projects.value.findIndex(p => p.id === id)
     if (index !== -1) {
       projects.value[index] = { ...projects.value[index], ...data }
     }
   }
 
-  function deleteProject(id: string) {
+  async function deleteProject(id: string) {
+    await api.delete(`/projects/${id}`)
     const index = projects.value.findIndex(p => p.id === id)
     if (index !== -1) {
       projects.value.splice(index, 1)

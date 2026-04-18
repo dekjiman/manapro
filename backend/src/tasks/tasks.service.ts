@@ -1,56 +1,100 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { db } from '../db';
+import { tasks, comments, attachments, users } from '../db/schema';
+import { eq, and, asc } from 'drizzle-orm';
 
 @Injectable()
 export class TasksService {
-  constructor(private prisma: PrismaService) {}
-
   async findByColumn(columnId: string) {
-    return this.prisma.task.findMany({
-      where: { columnId },
-      orderBy: { position: 'asc' },
-    })
+    return await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.columnId, columnId))
+      .orderBy(asc(tasks.position));
   }
 
   async findByProject(projectId: string) {
-    return this.prisma.task.findMany({
-      where: { projectId },
-      orderBy: [{ columnId: 'asc' }, { position: 'asc' }],
-    })
+    return await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.projectId, projectId))
+      .orderBy(asc(tasks.columnId), asc(tasks.position));
   }
 
   async findOne(id: string) {
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      include: { comments: true, attachments: true, assignee: { select: { id: true, name: true, email: true, avatar: true } } },
-    })
-    if (!task) throw new NotFoundException('Task tidak ditemukan')
-    return task
+    const [task] = await db
+      .select({
+        id: tasks.id,
+        columnId: tasks.columnId,
+        projectId: tasks.projectId,
+        title: tasks.title,
+        description: tasks.description,
+        priority: tasks.priority,
+        assigneeId: tasks.assigneeId,
+        dueDate: tasks.dueDate,
+        labels: tasks.labels,
+        position: tasks.position,
+        createdAt: tasks.createdAt,
+        updatedAt: tasks.updatedAt,
+        comments: comments,
+        attachments: attachments,
+        assignee: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          avatar: users.avatar,
+        },
+      })
+      .from(tasks)
+      .leftJoin(comments, eq(tasks.id, comments.taskId))
+      .leftJoin(attachments, eq(tasks.id, attachments.taskId))
+      .leftJoin(users, eq(tasks.assigneeId, users.id))
+      .where(eq(tasks.id, id));
+
+    if (!task) throw new NotFoundException('Task tidak ditemukan');
+    return task;
   }
 
   async create(data: any) {
-    return this.prisma.task.create({ data })
+    const [task] = await db.insert(tasks).values(data).returning();
+    return task;
   }
 
   async update(id: string, data: any) {
-    return this.prisma.task.update({ where: { id }, data })
+    const [task] = await db
+      .update(tasks)
+      .set(data)
+      .where(eq(tasks.id, id))
+      .returning();
+    return task;
   }
 
   async delete(id: string) {
-    return this.prisma.task.delete({ where: { id } })
+    const [task] = await db.delete(tasks).where(eq(tasks.id, id)).returning();
+    return task;
   }
 
   async move(taskId: string, columnId: string, position: number) {
-    return this.prisma.task.update({
-      where: { id: taskId },
-      data: { columnId, position },
-    })
+    const [task] = await db
+      .update(tasks)
+      .set({ columnId, position })
+      .where(eq(tasks.id, taskId))
+      .returning();
+    return task;
   }
 
   async reorder(columnId: string, taskIds: string[]) {
-    const updates = taskIds.map((id, index) =>
-      this.prisma.task.update({ where: { id }, data: { position: index } })
-    )
-    return this.prisma.$transaction(updates)
+    return await db.transaction(async (tx) => {
+      const results: any[] = [];
+      for (let index = 0; index < taskIds.length; index++) {
+        const result = await tx
+          .update(tasks)
+          .set({ position: index })
+          .where(eq(tasks.id, taskIds[index]))
+          .returning();
+        results.push(result[0]);
+      }
+      return results;
+    });
   }
 }

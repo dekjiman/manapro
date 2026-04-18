@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Subscription, Invoice, PlanFeatures } from '@/types'
-import subscriptionsData from '@/mock/subscriptions.json'
-import invoicesData from '@/mock/invoices.json'
+import { api } from '@/services/api'
 
 export const PLAN_FEATURES: Record<string, PlanFeatures> = {
   free: {
@@ -10,7 +9,8 @@ export const PLAN_FEATURES: Record<string, PlanFeatures> = {
     price: 0,
     price_yearly: 0,
     max_members: 3,
-    max_projects: 2,
+    max_workspaces: 2,
+    max_projects: 999,
     storage_mb: 100,
     kanban: true,
     calendar: false,
@@ -27,8 +27,9 @@ export const PLAN_FEATURES: Record<string, PlanFeatures> = {
     name: 'Pro',
     price: 49000,
     price_yearly: 470400,
-    max_members: 20,
-    max_projects: 20,
+    max_members: 15,
+    max_workspaces: 15,
+    max_projects: 999,
     storage_mb: 5120,
     kanban: true,
     calendar: true,
@@ -45,8 +46,9 @@ export const PLAN_FEATURES: Record<string, PlanFeatures> = {
     name: 'Enterprise',
     price: 199000,
     price_yearly: 1910400,
-    max_members: 999,
-    max_projects: 999,
+    max_members: 999999, // unlimited
+    max_workspaces: 999999, // unlimited
+    max_projects: 999999, // unlimited
     storage_mb: 51200,
     kanban: true,
     calendar: true,
@@ -62,56 +64,79 @@ export const PLAN_FEATURES: Record<string, PlanFeatures> = {
 }
 
 export const useSubscriptionStore = defineStore('subscription', () => {
-  const subscriptions = ref<Subscription[]>(subscriptionsData as Subscription[])
-  const invoices = ref<Invoice[]>(invoicesData as Invoice[])
+  const subscriptions = ref<Subscription[]>([])
+  const invoices = ref<Invoice[]>([])
+  const plans = ref<any[]>([])
+
+  async function fetchPlans() {
+    try {
+      plans.value = await api.get('/subscriptions/plans')
+    } catch (error) {
+      console.error('Failed to fetch plans:', error)
+    }
+  }
+
+  async function fetchTenantSubscription(tenantId: string) {
+    try {
+      const subscription = await api.get(`/subscriptions/tenant/${tenantId}`)
+      // Update or add to subscriptions array
+      const existingIndex = subscriptions.value.findIndex(s => s.tenant_id === tenantId)
+      if (existingIndex >= 0) {
+        subscriptions.value[existingIndex] = subscription
+      } else {
+        subscriptions.value.push(subscription)
+      }
+      return subscription
+    } catch (error) {
+      console.error('Failed to fetch subscription:', error)
+    }
+    return null
+  }
 
   function getTenantSubscription(tenantId: string): Subscription | null {
     return subscriptions.value.find(s => s.tenant_id === tenantId) || null
   }
 
-  function getTenantInvoices(tenantId: string) {
-    return invoices.value
-      .filter(i => i.tenant_id === tenantId)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  async function getTenantInvoices(tenantId: string) {
+    try {
+      return await api.get(`/subscriptions/tenant/${tenantId}/invoices`)
+    } catch (error) {
+      console.error('Failed to fetch invoices:', error)
+    }
+    return []
   }
 
   function getPlanFeatures(plan: string): PlanFeatures {
     return PLAN_FEATURES[plan] || PLAN_FEATURES.free
   }
 
-  function upgradePlan(tenantId: string, newPlan: 'pro' | 'enterprise', cycle: 'monthly' | 'yearly' = 'monthly') {
-    const sub = subscriptions.value.find(s => s.tenant_id === tenantId)
-    if (sub) {
-      sub.plan = newPlan
-      sub.status = 'active'
-      sub.billing_cycle = cycle
-      sub.price = cycle === 'yearly'
-        ? PLAN_FEATURES[newPlan].price_yearly
-        : PLAN_FEATURES[newPlan].price
-
-      const now = new Date()
-      sub.current_period_start = now.toISOString().split('T')[0]
-      const endDate = new Date(now)
-      if (cycle === 'yearly') {
-        endDate.setFullYear(endDate.getFullYear() + 1)
+  async function upgradePlan(tenantId: string, newPlan: 'pro' | 'enterprise', cycle: 'monthly' | 'yearly' = 'monthly') {
+    try {
+      const updatedSubscription = await api.post('/subscriptions/upgrade', {
+        tenantId,
+        newPlan,
+        billingCycle: cycle,
+      })
+      // Update local state
+      const existingIndex = subscriptions.value.findIndex(s => s.tenant_id === tenantId)
+      if (existingIndex >= 0) {
+        subscriptions.value[existingIndex] = updatedSubscription
       } else {
-        endDate.setMonth(endDate.getMonth() + 1)
+        subscriptions.value.push(updatedSubscription)
       }
-      sub.current_period_end = endDate.toISOString().split('T')[0]
+      return updatedSubscription
+    } catch (error) {
+      console.error('Failed to upgrade plan:', error)
     }
   }
 
-  function downgradeToFree(tenantId: string) {
-    const sub = subscriptions.value.find(s => s.tenant_id === tenantId)
-    if (sub) {
-      sub.plan = 'free'
-      sub.price = 0
-      sub.billing_cycle = 'monthly'
-      sub.current_period_end = '2099-12-31'
-    }
+  async function downgradeToFree(tenantId: string) {
+    // For now, just call upgrade to free plan
+    return await upgradePlan(tenantId, 'free', 'monthly')
   }
 
-  function createInvoice(tenantId: string, amount: number): Invoice {
+  async function createInvoice(tenantId: string, amount: number): Promise<Invoice | null> {
+    // For now, return a mock invoice since we don't have invoice API yet
     const tax = Math.round(amount * 0.11)
     const invoice: Invoice = {
       id: `inv${Date.now()}`,
@@ -128,7 +153,7 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     return invoice
   }
 
-  function payInvoice(invoiceId: string) {
+  async function payInvoice(invoiceId: string): Promise<void> {
     const invoice = invoices.value.find(i => i.id === invoiceId)
     if (invoice) {
       invoice.status = 'paid'
@@ -147,6 +172,9 @@ export const useSubscriptionStore = defineStore('subscription', () => {
   return {
     subscriptions,
     invoices,
+    plans,
+    fetchPlans,
+    fetchTenantSubscription,
     getTenantSubscription,
     getTenantInvoices,
     getPlanFeatures,

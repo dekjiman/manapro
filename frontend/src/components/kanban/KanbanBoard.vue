@@ -29,7 +29,7 @@ const columns = computed({
   }
 })
 
-const showAddColumn = computed(() => columns.value.length < 6)
+const showAddColumn = computed(() => columns.value.length < 15)
 
 function addColumn() {
   const name = prompt('Nama kolom baru:')
